@@ -1,7 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# загрузка .env
+# Проверка наличия kubectl и установка, если не найдено
+if ! command -v kubectl &> /dev/null; then
+  echo "kubectl не найден. Устанавливаем..."
+  curl -LO "https://dl.k8s.io/release/v1.24.0/bin/linux/amd64/kubectl"
+  chmod +x ./kubectl
+  sudo mv ./kubectl /usr/local/bin/kubectl
+fi
+
+# Проверка наличия minikube и установка, если не найдено (если нужно для локальной разработки)
+if ! command -v minikube &> /dev/null; then
+  echo "minikube не найден. Устанавливаем..."
+  curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+  chmod +x minikube
+  sudo mv minikube /usr/local/bin/
+fi
+
+# Проверка наличия kubectl context
+if ! kubectl config current-context &> /dev/null; then
+  echo "Контекст kubectl не настроен. Пожалуйста, настройте kubectl для доступа к вашему кластеру."
+  exit 1
+fi
+
+# Проверка наличия .env
 if [ ! -f .env ]; then
   echo "Файл .env не найден. Переименуйте .env.example в .env и заполните значения."
   exit 1
